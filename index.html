@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDo List</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap");
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-image: url('Study1.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 600px;
+            padding: 20px;
+            background-color: beige;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        #taskInput {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .input-field,
+        .priority-field {
+            flex: 1;
+            margin-right: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .todoLists {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .list {
+            padding: 15px;
+            border-bottom: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f9f9f9;
+        }
+
+        .task {
+            flex: 1;
+        }
+
+        .task-date {
+            margin-left: 10px;
+        }
+
+        .footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .pending-num {
+            font-weight: bold;
+        }
+
+        .clear-button {
+            background-color: tan;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .clear-button:hover {
+            background-color: #45a049;
+        }
+
+        .high-priority {
+            border-left: 4px solid red;
+        }
+
+        .medium-priority {
+            border-left: 4px solid orange;
+        }
+
+        .low-priority {
+            border-left: 4px solid green;
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: grey;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Website Projects TODO List</h1>
+        <div id="taskInput">
+            <input type="text" id="task" class="input-field" placeholder="Add New Task">
+            <input type="date" id="deadline" class="input-field">
+            <select id="priority" class="priority-field">
+                <option value="high">High Priority</option>
+                <option value="medium">Medium Priority</option>
+                <option value="low">Low Priority</option>
+            </select>
+            <button id="addTaskButton" class="clear-button" style="margin-left: 10px;">Add Task</button>
+        </div>
+        <ul id="taskList" class="todoLists"></ul>
+        <div class="footer">
+            <span class="pending-num">no</span> tasks pending
+            <button class="clear-button" id="clearAllButton">Clear All</button>
+        </div>
+    </div>
+    <script>
+        const inputField = document.querySelector("#task"),
+            deadlineField = document.querySelector("#deadline"),
+            priorityField = document.querySelector("#priority"),
+            todoLists = document.querySelector("#taskList"),
+            pendingNum = document.querySelector(".pending-num"),
+            addTaskButton = document.querySelector("#addTaskButton"),
+            clearButton = document.querySelector("#clearAllButton");
+
+        function allTasks() {
+            let tasks = document.querySelectorAll(".list");
+            pendingNum.textContent = tasks.length === 0 ? "Not a single task added" : tasks.length;
+            if (tasks.length > 0) {
+                todoLists.style.marginTop = "20px";
+                clearButton.style.pointerEvents = "auto";
+            } else {
+                todoLists.style.marginTop = "0px";
+                clearButton.style.pointerEvents = "none";
+            }
+        }
+
+        function addTask() {
+            let task = inputField.value.trim();
+            let deadline = deadlineField.value;
+            let priority = priorityField.value;
+
+            if (task.length > 0) {
+                let priorityClass = "";
+                switch (priority) {
+                    case "high":
+                        priorityClass = "high-priority";
+                        break;
+                    case "medium":
+                        priorityClass = "medium-priority";
+                        break;
+                    case "low":
+                        priorityClass = "low-priority";
+                        break;
+                }
+
+                let liTag = document.createElement('li');
+                liTag.className = `list pending ${priorityClass}`;
+                liTag.innerHTML = `
+                    <input type="checkbox" />
+                    <span class="task">${task}</span>
+                    <span class="task-date">${deadline}</span>
+                    <i class="uil uil-trash"></i>
+                `;
+
+                liTag.querySelector('input[type="checkbox"]').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleStatus(liTag);
+                });
+
+                liTag.querySelector('.uil-trash').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteTask(liTag);
+                });
+
+                todoLists.appendChild(liTag);
+                inputField.value = ""; // Clear input field after adding task
+                deadlineField.value = "";
+                allTasks();
+            }
+        }
+
+        function handleStatus(taskItem) {
+            const checkbox = taskItem.querySelector("input");
+            checkbox.checked = !checkbox.checked;
+            taskItem.classList.toggle("pending");
+            taskItem.classList.toggle("completed");
+            allTasks();
+        }
+
+        function deleteTask(taskItem) {
+            taskItem.remove();
+            allTasks();
+        }
+
+        addTaskButton.addEventListener("click", addTask);
+
+        clearButton.addEventListener("click", () => {
+            todoLists.innerHTML = "";
+            allTasks();
+        });
+
+        allTasks();
+    </script>
+</body>
+
+</html>
